@@ -1,0 +1,12 @@
+name = "Jigsaw"
+uuid = "370b0090-9d6e-4e72-ab0c-dd1d3d3336a6"
+authors = ["dimchee <dimchee90@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+FileIO = "5789e2e9-d7fb-5bc7-8068-2c6fae9b9549"
+ImageIO = "82e4d734-157c-48bb-816b-45c225c6df19"
+Images = "916415d5-f1e6-5110-898d-aaa5f9f070e0"
+Pluto = "c3e4b0f8-55cb-11ea-2926-15256bba5781"
+Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
+Transducers = "28d57a85-8fef-5791-bfe6-a80928e7c999"
