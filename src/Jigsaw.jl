@@ -4,12 +4,11 @@ using Images, FileIO, Transducers
 
 const Ind = Tuple{Int64, Int64}
 
-
-# Get 2 overlaped views of images and delete interlocked parts
-# Need to solve corners
 function seq(n::Int64, step::Int64, margin::Int64)
-    [0, step + margin, Iterators.cycle([-2margin, margin + step + margin])] |> Cat() |> Scan(+) |>
-    TakeWhile(x -> x <= n) |> DropLast(1) |> Consecutive(2) |> Map(((a, b),) -> (a+1):b)
+    local it = Iterators.repeated(step) |>
+        Scan(+) |> TakeWhile(x -> x + step <= n) |>
+        MapCat(x -> (x + margin, x - margin)) |> collect
+    (0, it, n) |> Cat() |> Consecutive(2) |> Map(((a, b),) -> (a+1):b)
 end
 
 const Img = Matrix{ColorTypes.RGB{FixedPointNumbers.N0f8}}
