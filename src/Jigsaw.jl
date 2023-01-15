@@ -1,6 +1,6 @@
 module Jigsaw
 
-using Images, FileIO, Transducers
+using Images, Transducers, Pluto
 
 const Ind = Tuple{Int64, Int64}
 
@@ -35,7 +35,7 @@ cordMatrix = Dict(
     end,
 )
 
-function sepImgs!(lock, dir :: Symbol, margin :: Int64)
+function separateImgs!(shape, dir :: Symbol, margin :: Int64)
     overlapInds = overlapIndsDict(margin)
     function(imgs :: Tuple{Img, Img})
         img1, img2 = imgs
@@ -44,43 +44,29 @@ function sepImgs!(lock, dir :: Symbol, margin :: Int64)
                       Iterators.product(overlapInds[(dir, :start)](img2 |> size)...),
                      ) |> collect
         for ((ind1, ind2), (x, y)) in zip(overlap, cordMatrix[dir](overlap))
-            if lock(x, y) img1[ind1...] = Gray(0.0) else img2[ind2...] = Gray(0.0) end
+            if shape(x, y) img1[ind1...] = Gray(0.0) else img2[ind2...] = Gray(0.0) end
         end
     end
 end
 
 const traverse = Dict(:horizontal => eachrow, :vertical => eachcol)
-function puzzlify!(grid :: Matrix{Img}, lock, dir :: Symbol, margin :: Int64)
+function puzzlify!(grid :: Matrix{Img}, shape, dir :: Symbol, margin :: Int64)
     foreach(grid |> traverse[dir]) do vec
-        vec |> Consecutive(2, 1) .|> sepImgs!(lock, dir, margin)
+        vec |> Consecutive(2, 1) .|> separateImgs!(shape, dir, margin)
     end
 end
-function puzzlify!(grid :: Matrix{Img}, lock, margin = 15)
-    puzzlify!(grid, lock, :horizontal, margin)
-    puzzlify!(grid, lock, :vertical,   margin)
-end
-function puzzlify(grid :: Matrix{Img}, lock, margin = 15)
-    ngrid = deepcopy(grid)
-    puzzlify!(ngrid, lock, margin)
-    return ngrid
+function puzzlify!(grid :: Matrix{Img}, shape, margin)
+    puzzlify!(grid, shape, :horizontal, margin)
+    puzzlify!(grid, shape, :vertical,   margin)
 end
 
-function parts(step=100, margin=15)
+function partitioner(step, margin)
     function(img :: Img)
         xs, ys = img |> size .|> l -> seq(l, step, margin) |> collect
         [ img[i, j] for i in xs, j in ys ]
     end
 end
 
-# Doesn't look right when step=100, margin=100
-function to_parts(step = 100, margin = 15)
-    A = "res/VanGogh.jpg" |> load |> parts(step, margin)
-    puzzlify!(A, (x, y) -> x > 0 || (x+0.4)^2 + y^2 < 0.6^2, margin)
-    for i in findall(_ -> true, A)
-        save("res/parts/part-$i.png", A[i])
-    end
-end
-
-export to_parts, seq, parts, puzzlify!, puzzlify
+include("Utils.jl")
 
 end # module Jigsaw
