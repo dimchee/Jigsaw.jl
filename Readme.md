@@ -2,7 +2,7 @@
 
 - Simple julia library for creating Jigsaw puzzles
 
-![Van Gogh puzzle](res/VanGoghPuzzle.png)
+![Van Gogh puzzle](res/puzzle.png)
 
 # Quick start
 
@@ -40,7 +40,7 @@ julia>
 - You can directly generate puzzle with `makePuzzle` function
 - You can save your puzzle as individual pictures to directory
 ```sh
-julia> makePuzzle("res/VanGogh.jpg") |> save("parts")
+julia> makePuzzle("res/kauernder_junge.jpg") |> save("parts")
 ```
 
 ## Experimentation
@@ -53,6 +53,7 @@ julia> pluto()
 
 # Resources
 
+- [Sample Image](https://free-images.com/display/van_gogh_kauernder_junge.html)
 - [Online game](http://www.jigzone.com/)
 - [Solver](https://github.com/bbrattoli/JigsawPuzzlePytorch)
 

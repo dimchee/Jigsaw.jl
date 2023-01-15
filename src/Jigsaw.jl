@@ -19,7 +19,7 @@ function overlapIndsDict(k :: Int64)
          (:horizontal, :end) => ((n, m),) -> (1:n, (m-k+1):m)
         )
 end
-const Img = Matrix{ColorTypes.RGB{FixedPointNumbers.N0f8}}
+const Img = Matrix{Pix} where Pix
 
 # Could be const, maybe be parametric on step and margin (so edge pieces are centered)
 cordMatrix = Dict(
@@ -37,31 +37,31 @@ cordMatrix = Dict(
 
 function separateImgs!(shape, dir :: Symbol, margin :: Int64)
     overlapInds = overlapIndsDict(margin)
-    function(imgs :: Tuple{Img, Img})
+    function(imgs :: Tuple{Img{Pix}, Img{Pix}}) where Pix
         img1, img2 = imgs
         overlap = zip(
                       Iterators.product(overlapInds[(dir, :end  )](img1 |> size)...),
                       Iterators.product(overlapInds[(dir, :start)](img2 |> size)...),
                      ) |> collect
         for ((ind1, ind2), (x, y)) in zip(overlap, cordMatrix[dir](overlap))
-            if shape(x, y) img1[ind1...] = Gray(0.0) else img2[ind2...] = Gray(0.0) end
+            if shape(x, y) img1[ind1...] = zero(Pix) else img2[ind2...] = zero(Pix) end
         end
     end
 end
 
 const traverse = Dict(:horizontal => eachrow, :vertical => eachcol)
-function puzzlify!(grid :: Matrix{Img}, shape, dir :: Symbol, margin :: Int64)
+function puzzlify!(grid :: Matrix{Img{Pix}}, shape, dir :: Symbol, margin :: Int64) where Pix
     foreach(grid |> traverse[dir]) do vec
         vec |> Consecutive(2, 1) .|> separateImgs!(shape, dir, margin)
     end
 end
-function puzzlify!(grid :: Matrix{Img}, shape, margin)
+function puzzlify!(grid :: Matrix{Img{Pix}}, shape, margin) where Pix
     puzzlify!(grid, shape, :horizontal, margin)
     puzzlify!(grid, shape, :vertical,   margin)
 end
 
 function partitioner(step, margin)
-    function(img :: Img)
+    function(img :: Img{Pix}) where Pix
         xs, ys = img |> size .|> l -> seq(l, step, margin) |> collect
         [ img[i, j] for i in xs, j in ys ]
     end
