@@ -1,6 +1,6 @@
 module Jigsaw
 
-using Images, Transducers, Pluto
+using Images, Transducers
 
 const Ind = Tuple{Int64, Int64}
 
@@ -35,16 +35,22 @@ cordMatrix = Dict(
     end,
 )
 
+# Can be refactored
 function separateImgs!(shape, dir :: Symbol, margin :: Int64)
     overlapInds = overlapIndsDict(margin)
     function(imgs :: Tuple{Img{Pix}, Img{Pix}}) where Pix
         img1, img2 = imgs
+        includePix = (:bump, :dent) |> rand |> shape
+        blank = zero(Pix) 
         overlap = zip(
                       Iterators.product(overlapInds[(dir, :end  )](img1 |> size)...),
                       Iterators.product(overlapInds[(dir, :start)](img2 |> size)...),
                      ) |> collect
         for ((ind1, ind2), (x, y)) in zip(overlap, cordMatrix[dir](overlap))
-            if shape(x, y) img1[ind1...] = zero(Pix) else img2[ind2...] = zero(Pix) end
+            which = includePix(x, y)
+            if     which == :left  img2[ind2...] = blank
+            elseif which == :right img1[ind1...] = blank
+            else img1[ind1...] = blank; img2[ind2...] = blank end
         end
     end
 end
